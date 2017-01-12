@@ -1,24 +1,27 @@
-extends base
-
-block title
-  if page.category
-     title= page.category + ' | ' + config.title
-  if page.tag
-     title= page.tag + ' | ' + config.title
-  if page.archive
-     title= __('archive') + ' | ' + config.title
+extends ./_partial/layout.pug
 block content
-  if page.category || page.tag
-      h1.label-title=  __('reading_label', page.category || page.tag)
-  .post
-    .post-archive
-        //Use lodash to classify posts. See https://lodash.com/docs#groupBy
-        each posts, year in _.groupBy(page.posts.toArray(), function(p){return -p.date.format('YYYY')})
-          h2= -year
-          ul.listing
-            for post in posts
-              li
-                span.date= post.date.format('YYYY/MM/DD')
-                a(href=url_for(post.path), title=post.title)
-                  +title(post)
-  include _partial/paginator.jade
+  include ./_partial/page_header.pug
+  ul.post-list
+    each post in page.posts.data
+      li 
+        p.date #{time(post.date, 'LL')}
+        if post.title
+          h4.title
+            a(href=url_for(post.path)) #{post.title}
+          .excerpt !{post.excerpt}
+        else
+          .no-title !{post.content}
+        if post.photos && post.photos.length
+          a(href=url_for(post.path))
+            img.photo(src=post.photos[0])
+        ul.meta
+          li
+            i.icon.icon-author
+            | #{config.author}
+          li
+            i.icon.icon-clock
+            | #{parseInt(post.content ? post.content.length/900 : 0)} Minutes
+          li
+            i.icon.icon-category
+            | !{list_categories(post.categories)}
+  include ./_partial/pagination.pug

@@ -1,51 +1,45 @@
-extends base
-
-block title
-  title= page.title + ' | ' + config.title
-
+extends ./_partial/layout.pug
 block content
-  .post
-    h1.post-title= page.title
-    .post-meta= page.date.format('ll')
-      if page.categories.length > 0
-        span= ' | '
-        span.category
-          for category in page.categories.toArray()
-            a(href=url_for(category.path))= category.name
-      if theme.busuanzi == true
-        script(src='https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js', async)
-        span#busuanzi_container_page_pv= ' | '
-          span#busuanzi_value_page_pv
-          span= ' ' + __('Hits')
-    if theme.duoshuo
-      a.ds-thread-count(data-thread-key=page.path, href=url_for(page.path) + '#comments')
-    if theme.disqus
-      a.disqus-comment-count(data-disqus-identifier=page.path, href=url_for(page.path) + '#disqus_thread')
-    if page.toc
-      div(class='clear')
-        div(id='toc' class='toc-article')
-          div(class='toc-title')= __('contents')
-          != toc(page.content)
-    .post-content
-      != page.content
-    if theme.shareto == true
-      script(type='text/javascript', src=url_for(theme.js) + '/share.js' + '?v=' + theme.version, async)
-      a.article-share-link(data-url='#{page.permalink}', data-id='#{page._id}')= __('shareto')
-    include _partial/tag
-    include _partial/post_nav
-    if theme.duoshuo
-      div(class='ds-share flat' data-thread-key=page.path, data-title=page.title, data-url=page.permalink)
-         .ds-share-inline
-            ul.ds-share-icons-16
-              li(data-toggle='ds-share-icons-more')
-                a(class='ds-more' href='javascript:void(0);') 分享到：
-              li
-                a(class='ds-weibo' href='javascript:void(0);' data-service='weibo') 微博
-              li
-                a(class='ds-qzone' href='javascript:void(0);' data-service='qzone') QQ空间
-              li
-                a(class='ds-qqt' href='javascript:void(0);' data-service='qqt') 腾讯微博
-              li
-                a(class='ds-wechat' href='javascript:void(0);' data-service='wechat') 微信
-            .ds-share-icons-more
-    include _partial/comments
+  include ./_partial/post_header.pug
+  .article-content
+    if page.photos && page.photos.length
+      div
+        each photo in page.photos
+          a.article-gallery-img.fancybox(href=photo)
+            img(src=photo)
+    | !{page.content}
+  .article-meta
+    if page.tags && page.tags.length
+      .tags
+        i.icon.icon-tag
+        | !{list_tags(page.tags)}
+    if page.tags && page.categories.length
+      .categories
+        i.icon.icon-category
+        | !{list_categories(page.categories)}
+  if theme.duoshuo.enable
+    .article-comment
+      #ds-thread.ds-thread(data-thread-key=page._id, data-title=page.title, data-url=config.url + url_for(page.path), site-name=theme.duoshuo.siteName)
+      script.
+        var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+        var duoshuoQuery = {short_name: siteName};
+        (function() {
+          var ds = document.createElement('script');
+          ds.type = 'text/javascript';ds.async = true;
+          ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+          ds.charset = 'UTF-8';
+          (document.getElementsByTagName('head')[0] 
+          || document.getElementsByTagName('body')[0]).appendChild(ds);
+        })();
+  ul.navication
+    li.home
+      a(href="/")
+        i.icon.icon-home
+    if page.prev && page.prev.path
+      li
+        a(href=url_for(page.prev.path))
+          i.icon.icon-arror-left
+    if page.next && page.next.path
+      li
+        a(href=url_for(page.next.path))
+          i.icon.icon-arror-right
